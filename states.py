@@ -3,6 +3,7 @@
 from functools import lru_cache
 import re
 import time
+import copy
 
 
 class Querier(object):
@@ -23,7 +24,7 @@ class Querier(object):
             return self._cache
 
         result = self._method()
-        self._cache = result
+        self._cache = copy.deepcopy(result)
         return result
 
     def clear(self):
@@ -65,7 +66,7 @@ class State(object):
             self._canonical_name = canonical
             return canonical
 
-    def inspect(self, *params, use_cache=1, **kwargs):
+    def inspect(self, *params, use_cache=True, **kwargs):
         if not use_cache:
             self.clear_caches()
         return self._inspect(*params, **kwargs)
