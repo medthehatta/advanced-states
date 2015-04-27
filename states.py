@@ -37,7 +37,7 @@ class Querier(object):
 
 class State(object):
     def __init__(self, *params, **kwargs):
-        raise NotImplementedError('Override me')
+        raise NotImplementedError()
 
     @classmethod
     def get_canonical_name(name):
@@ -65,15 +65,15 @@ class State(object):
         return self._inspect(*params, **kwargs)
 
     def _inspect(self, *params, **kwargs):
-        raise NotImplementedError('Override me')
+        raise NotImplementedError()
 
     @property
     def children(self):
-        raise NotImplementedError('Override me')
+        raise NotImplementedError()
 
     @property
     def queriers(self):
-        raise NotImplementedError('Override me')
+        raise NotImplementedError()
 
     def clear_caches(self):
         for querier in self.queriers:
