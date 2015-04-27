@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 import re
+import time
 
 
 class Querier(object):
@@ -79,6 +80,10 @@ class State(object):
         for querier in self.queriers:
             querier.clear()
 
+    @classmethod
+    def generate_unique_id():
+        return str(time.time())
+
 
 class FundamentalState(State):
     def __init__(self, name, querier, query_evaluator, canonical_name=None):
@@ -86,6 +91,7 @@ class FundamentalState(State):
         self.querier = querier
         self.query_evaluator = query_evaluator
         self.canonical_name = canonical_name
+        self._id = State.generate_unique_id()
 
     @property
     @lru_cache
@@ -131,6 +137,7 @@ class StateNegation(CompositeState):
             self.name = 'NOT ' + of.name
 
         self.target = of
+        self._id = State.generate_unique_id()
 
     def _inspect(self, *params, **kwargs):
         return not self.target.inspect(*params, **kwargs)
@@ -142,6 +149,7 @@ class StateDisjunction(CompositeState):
             self.name = StateDisjunction._auto_name(of)
 
         self._children = of
+        self._id = State.generate_unique_id()
 
     def _inspect(self, *params, **kwargs):
         return any(child.inspect(*params, **kwargs) for child in self.children)
@@ -157,6 +165,7 @@ class StateConjunction(CompositeState):
             self.name = StateConjunction._auto_name(of)
 
         self._children = of
+        self._id = State.generate_unique_id()
 
     def _inspect(self, *params, **kwargs):
         return all(child.inspect(*params, **kwargs) for child in self.children)
