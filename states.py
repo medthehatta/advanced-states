@@ -121,7 +121,19 @@ class CompositeState(State):
 
 
 class StateNegation(CompositeState):
-    pass
+    def __init__(self, of, name=None):
+        if isinstance(of, list):
+            self._children = of
+        else:
+            self._children = [of]
+
+        if not name:
+            self.name = 'NOT ' + of.name
+
+        self.target = of
+
+    def _inspect(self, *params, **kwargs):
+        return not self.target.inspect(*params, **kwargs)
 
 
 class StateDisjunction(CompositeState):
