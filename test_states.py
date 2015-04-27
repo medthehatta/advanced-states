@@ -66,6 +66,72 @@ def attached_querier():
 
 
 @pytest.yield_fixture()
+def multiple_queriers():
+    MultipleQueriersContainer = namedtuple(
+        'MultipleQueriersContainter',
+        'qs',
+    )
+    (obj1, obj2, obj3, obj4, obj5) = [{'v': ''}]*5
+    yield MultipleQueriersContainer(
+        qs=[
+            states.Querier(
+                name='Querier 1',
+                method=lambda: obj1,
+            ),
+            states.Querier(
+                name='Querier 2',
+                method=lambda: obj2,
+            ),
+            states.Querier(
+                name='Querier 3',
+                method=lambda: obj3,
+            ),
+            states.Querier(
+                name='Querier 4',
+                method=lambda: obj4,
+            ),
+            states.Querier(
+                name='Querier 5',
+                method=lambda: obj5,
+            ),
+        ],
+    )
+
+
+@pytest.yield_fixture()
+def multiple_states(multiple_queriers):
+    (q1, q2, q3, q4, q5) = multiple_queriers.qs
+    MultipleStatesContainer = namedtuple(
+        'MultipleStatesContainter',
+        'ss',
+    )
+    yield MultipleStatesContainer(
+        ss=[
+            states.FundamentalState(
+                name='FundamentalState 1',
+                querier=q1,
+            ),
+            states.FundamentalState(
+                name='FundamentalState 2',
+                querier=q1,
+            ),
+            states.FundamentalState(
+                name='FundamentalState 3',
+                querier=q1,
+            ),
+            states.FundamentalState(
+                name='FundamentalState 4',
+                querier=q1,
+            ),
+            states.FundamentalState(
+                name='FundamentalState 5',
+                querier=q1,
+            ),
+        ],
+    )
+
+
+@pytest.yield_fixture()
 def attached_state(attached_querier):
     AttachedStateContainer = namedtuple(
         'AttachedStateContainer',
@@ -80,6 +146,20 @@ def attached_state(attached_querier):
             querier=q,
             query_evaluator=lambda x: x['v'] == 'found',
         ),
+    )
+
+
+@pytest.yield_fixture()
+def composite_state(multiple_states):
+    (s1, s2, s3, s4, s5) = multiple_states.ss
+    CompositeStateContainer = namedtuple(
+        'CompositeStateContainer',
+        'negation,disj,conj,composite1,composite2',
+    )
+    yield CompositeStateContainer(
+        negation=states.StateNegation(of=s1),
+        disjunction=states.StateDisjunction(of=[s1, s2]),
+        conjunction=states.StateConjunction(of=[s1, s2]),
     )
 
 
