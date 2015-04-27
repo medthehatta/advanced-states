@@ -184,7 +184,7 @@ class StateDisjunction(CompositeState):
 
     @staticmethod
     def _auto_name(of):
-        return ' or '.join([child.name for child in of])
+        return ' or '.join(child.name for child in of)
 
 
 class StateConjunction(CompositeState):
@@ -202,4 +202,4 @@ class StateConjunction(CompositeState):
 
     @staticmethod
     def _auto_name(of):
-        return ' and '.join([child.name for child in of])
+        return ' and '.join(child.name for child in of)
