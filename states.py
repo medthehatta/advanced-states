@@ -40,7 +40,7 @@ class State(object):
     def __init__(self, *params, **kwargs):
         raise NotImplementedError()
 
-    @classmethod
+    @staticmethod
     def get_canonical_name(name):
         return re.sub(
             r'\ +',
@@ -85,7 +85,7 @@ class State(object):
         for querier in self.queriers:
             querier.clear()
 
-    @classmethod
+    @staticmethod
     def generate_unique_id():
         return str(time.time())
 
@@ -174,7 +174,7 @@ class StateDisjunction(CompositeState):
     def _inspect(self, *params, **kwargs):
         return any(child.inspect(*params, **kwargs) for child in self.children)
 
-    @classmethod
+    @staticmethod
     def _auto_name(of):
         return ' or '.join([child.name for child in of])
 
@@ -192,6 +192,6 @@ class StateConjunction(CompositeState):
     def _inspect(self, *params, **kwargs):
         return all(child.inspect(*params, **kwargs) for child in self.children)
 
-    @classmethod
+    @staticmethod
     def _auto_name(of):
         return ' and '.join([child.name for child in of])
