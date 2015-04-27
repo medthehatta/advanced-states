@@ -7,27 +7,27 @@ import time
 
 class Querier(object):
     def __init__(self, method, name='Unnamed Querier'):
-        self.name = name
-        self.method = method
+        self._name = name
+        self._method = method
         self.cache = None
 
     @property
     def name(self):
-        return self.name
+        return self._name
 
     def query(self, use_cache=True):
         if not use_cache:
             self.clear()
 
-        if self.cache is not None:
-            return self.cache
+        if self._cache is not None:
+            return self._cache
 
-        result = self.method()
-        self.cache = result
+        result = self._method()
+        self._cache = result
         return result
 
     def clear(self):
-        self.cache = None
+        self._cache = None
 
     def __str__(self):
         return '{0}:\n{1}'.format(self.name, self.query())
@@ -56,7 +56,7 @@ class State(object):
     def name(self):
         return self.name
 
-    @lru_cache
+    @lru_cache()
     def canonical_name(self):
         return State.get_canonical_name(self.name)
 
@@ -94,18 +94,24 @@ class FundamentalState(State):
         self._id = State.generate_unique_id()
 
     @property
-    @lru_cache
+    @lru_cache()
     def queriers(self):
         return [self.querier]
 
     @property
-    @lru_cache
     def children(self):
         return []
 
     def _inspect(self, *params, **kwargs):
         query_result = self.querier.query(*params, **kwargs)
         return self.query_evaluator(query_result)
+
+    def pretend(value=True):
+        return value
+
+    @property
+    def all_children(self):
+        return self.children
 
 
 class CompositeState(State):
@@ -120,10 +126,15 @@ class CompositeState(State):
         return self._children
 
     @property
-    @lru_cache
+    @lru_cache()
     def queriers(self):
-        all_queriers = [child.queriers for child in self.children]
+        all_queriers = (child.queriers for child in self.children)
         return list(set(all_queriers))
+
+    @property
+    @lru_cache()
+    def all_children(self):
+        list(set(child.all_children for child in self.children))
 
 
 class StateNegation(CompositeState):
