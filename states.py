@@ -137,8 +137,30 @@ class StateNegation(CompositeState):
 
 
 class StateDisjunction(CompositeState):
-    pass
+    def __init__(self, of, name=None):
+        if not name:
+            self.name = StateDisjunction._auto_name(of)
+
+        self._children = of
+
+    def _inspect(self, *params, **kwargs):
+        return any(child.inspect(*params, **kwargs) for child in self.children)
+
+    @classmethod
+    def _auto_name(of):
+        return ' or '.join([child.name for child in of])
 
 
 class StateConjunction(CompositeState):
-    pass
+    def __init__(self, of, name=None):
+        if not name:
+            self.name = StateConjunction._auto_name(of)
+
+        self._children = of
+
+    def _inspect(self, *params, **kwargs):
+        return all(child.inspect(*params, **kwargs) for child in self.children)
+
+    @classmethod
+    def _auto_name(of):
+        return ' and '.join([child.name for child in of])
