@@ -2,6 +2,7 @@
 
 import pytest
 from collections import namedtuple
+import random
 
 import states
 
@@ -10,15 +11,15 @@ import states
 def basic_queriers():
     QuerierContainer = namedtuple('DataContainer', 'q_true,q_false,q_random')
     yield QuerierContainer(
-        q_true = states.Querier(
+        q_true=states.Querier(
             name='Always True Querier',
             method=lambda: True,
         ),
-        q_false = states.Querier(
+        q_false=states.Querier(
             name='Always False Querier',
             method=lambda: False,
         ),
-        q_random = states.Querier(
+        q_random=states.Querier(
             name='Random Querier',
             method=lambda: random.random(),
         ),
@@ -32,16 +33,16 @@ def basic_states(basic_queriers):
         's_true,s_high,s_weird_name',
     )
     yield BasicStatesContainer(
-        s_true = states.FundamentalState(
+        s_true=states.FundamentalState(
             name='Always True State',
             querier=basic_queriers.q_true,
         ),
-        s_high = states.FundamentalState(
+        s_high=states.FundamentalState(
             name='Sometimes High State',
             querier=basic_queriers.q_random,
             query_evaluator=lambda x: x > 0.5
         ),
-        s_weird_name = states.FundamentalState(
+        s_weird_name=states.FundamentalState(
             name='A__State Name _ A # ',
             querier=basic_queriers.q_true,
         ),
@@ -54,12 +55,30 @@ def attached_querier():
         'AttachedQuerierContainer',
         'obj,q',
     )
-    obj = {'value': False}
+    obj = {'v': False}
     yield AttachedQuerierContainer(
-        obj = obj,
-        q = states.Querier(
+        obj=obj,
+        q=states.Querier(
             name='Attached Querier',
-            method=lambda: obj['value'],
+            method=lambda: obj,
+        ),
+    )
+
+
+@pytest.yield_fixture()
+def attached_state(attached_querier):
+    AttachedStateContainer = namedtuple(
+        'AttachedStateContainer',
+        'obj,q,s',
+    )
+    q = attached_querier.q
+    yield AttachedStateContainer(
+        obj=attached_querier.obj,
+        q=q,
+        s=states.FundamentalState(
+            name='Attached State',
+            querier=q,
+            query_evaluator=lambda x: x['v'] == 'found',
         ),
     )
 
@@ -70,22 +89,66 @@ def test_basic_queriers(basic_queriers):
     assert t.query(use_cache=True) == 1
 
 
-def test_querier_attached_to_object(attached_querier):
+def test_querier_attached_to_object_works_with_cache(attached_querier):
     obj = attached_querier.obj
     q = attached_querier.q
 
-    obj['value'] = False
-    assert q.query(use_cache=False) == False
+    obj['v'] = False
+    assert q.query(use_cache=False) == {'v': False}
 
-    obj['value'] = True
-    assert q.query() == False
-    assert q.query(use_cache=False) == True
-     
-    obj['value'] = False
+
+def test_querier_attached_to_object_works_with_no_cache(attached_querier):
+    obj = attached_querier.obj
+    q = attached_querier.q
+
+    obj['v'] = False
+    q.query(use_cache=False)
+    obj['v'] = True
+    assert q.query() == {'v': False}
+    assert q.query(use_cache=False) == {'v': True}
+
+
+def test_querier_attached_to_object_works_with_clear(attached_querier):
+    obj = attached_querier.obj
+    q = attached_querier.q
+
+    obj['v'] = True
+    q.query(use_cache=False)
+    obj['v'] = False
     q.clear()
-    assert q.query() == False
+    assert q.query() == {'v': False}
 
 
-def test_canonical_name(basic_queriers, basic_states):
+def test_canonical_name(basic_states):
     assert basic_states.s_true.canonical_name == 'always_true_state'
     assert basic_states.s_weird_name.canonical_name == 'a__state_name___a_'
+
+
+def test_attached_state_sanity(attached_state):
+    obj = attached_state.obj
+    s = attached_state.s
+
+    obj['v'] = 'found'
+    assert s.inspect()
+
+    obj['v'] = 'not found'
+    assert not s.inspect(use_cache=0)
+
+    obj['v'] = 'found'
+    assert s.inspect(use_cache=0)
+
+    # Checking cache, not real value
+    obj['v'] = 'not found'
+    assert s.inspect()
+
+    s.clear_caches()
+    assert not s.inspect()
+
+
+def test_attached_state_children(attached_state):
+    q = attached_state.q
+    s = attached_state.s
+
+    assert s.children == []
+    assert s.queriers == [q]
+    assert s.all_children == s.children
