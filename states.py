@@ -9,7 +9,7 @@ class Querier(object):
     def __init__(self, method, name='Unnamed Querier'):
         self._name = name
         self._method = method
-        self.cache = None
+        self._cache = None
 
     @property
     def name(self):
