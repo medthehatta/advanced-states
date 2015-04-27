@@ -54,7 +54,7 @@ class State(object):
 
     @property
     def name(self):
-        return self.name
+        return self._name
 
     @lru_cache()
     def canonical_name(self):
@@ -87,7 +87,7 @@ class State(object):
 
 class FundamentalState(State):
     def __init__(self, name, querier, query_evaluator, canonical_name=None):
-        self.name = name
+        self._name = name
         self.querier = querier
         self.query_evaluator = query_evaluator
         self.canonical_name = canonical_name
@@ -144,8 +144,10 @@ class StateNegation(CompositeState):
         else:
             self._children = [of]
 
-        if not name:
-            self.name = 'NOT ' + of.name
+        if name:
+            self._name = name
+        else:
+            self._name = 'NOT ' + of.name
 
         self.target = of
         self._id = State.generate_unique_id()
@@ -156,8 +158,10 @@ class StateNegation(CompositeState):
 
 class StateDisjunction(CompositeState):
     def __init__(self, of, name=None):
-        if not name:
-            self.name = StateDisjunction._auto_name(of)
+        if name:
+            self._name = name
+        else:
+            self._name = StateDisjunction._auto_name(of)
 
         self._children = of
         self._id = State.generate_unique_id()
@@ -172,8 +176,10 @@ class StateDisjunction(CompositeState):
 
 class StateConjunction(CompositeState):
     def __init__(self, of, name=None):
-        if not name:
-            self.name = StateConjunction._auto_name(of)
+        if name:
+            self._name = name
+        else:
+            self._name = StateConjunction._auto_name(of)
 
         self._children = of
         self._id = State.generate_unique_id()
