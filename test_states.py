@@ -152,3 +152,13 @@ def test_attached_state_children(attached_state):
     assert s.children == []
     assert s.queriers == [q]
     assert s.all_children == s.children
+
+
+def test_attached_state_id_exists(attached_state):
+    s = attached_state.s
+    assert s.generate_unique_id()
+    assert states.State.generate_unique_id()
+    assert states.FundamentalState.generate_unique_id()
+    assert states.CompositeState.generate_unique_id()
+    with pytest.raises(AttributeError):
+        states.Querier.generate_unique_id()
