@@ -162,3 +162,14 @@ def test_attached_state_id_exists(attached_state):
     assert states.CompositeState.generate_unique_id()
     with pytest.raises(AttributeError):
         states.Querier.generate_unique_id()
+
+
+def test_state_id_generated_fast(basic_queriers):
+    q_true = basic_queriers.q_true
+    multi = [
+        states.FundamentalState(name='a', querier=q_true)
+        for _ in range(100)
+    ]
+    # Make sure that all the ids are unique if spawned quickly
+    ids = [state._id for state in multi]
+    assert len(set(ids)) == len(ids)
