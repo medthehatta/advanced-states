@@ -91,11 +91,18 @@ class State(object):
 
 
 class FundamentalState(State):
-    def __init__(self, name, querier, query_evaluator, canonical_name=None):
+    def __init__(
+        self,
+        name,
+        querier,
+        query_evaluator=None,
+        canonical_name=None,
+    ):
         self._name = name
         self.querier = querier
-        self.query_evaluator = query_evaluator
-        self.canonical_name = canonical_name
+        #   The default query_evaluator is the identity
+        self.query_evaluator = query_evaluator or (lambda x: x)
+        self._canonical_name = canonical_name
         self._id = State.generate_unique_id()
 
     @property
