@@ -56,9 +56,14 @@ class State(object):
     def name(self):
         return self._name
 
-    @lru_cache()
+    @property
     def canonical_name(self):
-        return State.get_canonical_name(self.name)
+        if self._canonical_name:
+            return self._canonical_name
+        else:
+            canonical = State.get_canonical_name(self.name)
+            self._canonical_name = canonical
+            return canonical
 
     def inspect(self, *params, use_cache=1, **kwargs):
         if not use_cache:
