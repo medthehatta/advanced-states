@@ -81,7 +81,25 @@ class State(object):
 
 
 class FundamentalState(State):
-    pass
+    def __init__(self, name, querier, query_evaluator, canonical_name=None):
+        self.name = name
+        self.querier = querier
+        self.query_evaluator = query_evaluator
+        self.canonical_name = canonical_name
+
+    @property
+    @lru_cache
+    def queriers(self):
+        return [self.querier]
+
+    @property
+    @lru_cache
+    def children(self):
+        return []
+
+    def _inspect(self, *params, **kwargs):
+        query_result = self.querier.query(*params, **kwargs)
+        return self.query_evaluator(query_result)
 
 
 class CompositeState(State):
