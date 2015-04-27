@@ -103,7 +103,21 @@ class FundamentalState(State):
 
 
 class CompositeState(State):
-    pass
+    def __init__(self):
+        raise NotImplementedError()
+
+    def _inspect(self, *params, **kwargs):
+        raise NotImplementedError()
+
+    @property
+    def children(self):
+        return self._children
+
+    @property
+    @lru_cache
+    def queriers(self):
+        all_queriers = [child.queriers for child in self.children]
+        return list(set(all_queriers))
 
 
 class StateNegation(CompositeState):
